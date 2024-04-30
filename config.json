@@ -1,0 +1,81 @@
+{
+    "host": "http://localhost:3000/",
+    "allowCodes": "http://localhost:3000/machine-code.json",
+    "search": {
+        "interval": 500,
+        "timeout": 10000,
+        "rules": [
+            {
+                "type": 0,
+                "name": "手机",
+                "regexp": "(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}",
+                "flag": "g"
+            },
+            {
+                "type": 0,
+                "name": "手机",
+                "regexp": "^(\\+86\\s)?\\d{11}",
+                "flag": "g"
+            },
+            {
+                "type": 0,
+                "name": "手机",
+                "regexp": "^(\\+86\\s)?\\d{3}\\s\\d{4}\\s\\d{4}",
+                "flag": "g"
+            },
+            {
+                "type": 1,
+                "name": "座机",
+                "regexp": "\\d{3,4}-\\d{7,8}",
+                "flag": "g"
+            },
+            {
+                "type": 2,
+                "name": "邮箱",
+                "regexp": "\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*",
+                "flag": "g"
+            }
+        ],
+        "noDeepDomains": [
+            ".gov.cn"
+        ],
+        "ignoreHrefs": [
+            "javascript:void(0)"
+        ],
+        "downloadContentTypes": [
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-excel",
+            "application/octet-stream",
+            "image/png",
+            "image/jpeg",
+            "image/png",
+            "application/x-png",
+            "application/x-jpg",
+            "application/msword",
+            "applications-powerpoint",
+            "application/-excel",
+            "application/x-xls",
+            "application/x-ppt",
+            "text/plain",
+            "application/pdf"
+        ],
+        "downloadSuffixes": [
+            ".xls",
+            ".xlsx",
+            ".ppt",
+            ".pptx",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".png",
+            ".jpeg",
+            ".jpg",
+            ".jpg",
+            ".txt"
+        ]
+    },
+    "secretKey": "57,176,63,134,237,255,48,208,49,200,136,198,32,204,70,207,211,194,243,16,28,163,67,111,65,124,108,211,241,63,160,142",
+    "iv": "223,42,75,188,42,225,251,170,12,156,146,79,209,207,148,135"
+}
