@@ -165,6 +165,7 @@ function createWindow(url) {
 
 async function checkAuth() {
     let id = machineIdSync(true);
+    let result = true;
     try {
         let response = await axios.get(allowCodes);
         if (response.status === 200) {
@@ -178,7 +179,7 @@ async function checkAuth() {
                     message: `ID已复制，请注册当前ID后重试：${id}`,
                     buttons: ['确定']
                 });
-                app.quit();
+                result = false;
             }
         } else {
             await dialog.showMessageBox({
@@ -187,7 +188,7 @@ async function checkAuth() {
                 message: '当前授权服务不可用，请稍候重试',
                 buttons: ['确定']
             });
-            app.quit();
+            result = false;
         }
     } catch (e) {
         await dialog.showMessageBox({
@@ -196,15 +197,20 @@ async function checkAuth() {
             message: '当前授权服务不可用，请稍候重试',
             buttons: ['确定']
         });
-        app.quit();
+        result = false;
     }
+    return result;
 }
 
 //关闭网站隔离
 app.commandLine.appendSwitch("disable-site-isolation-trials");
 
 app.whenReady().then(async () => {
-    await checkAuth();
+    let authPass = await checkAuth();
+    if (!authPass) {
+        await app.quit();
+        return;
+    }
     await global.sqlite.open();
     if (isNeedInitDB) {
         const initSql = fs.readFileSync(path.join(process.cwd(), "init.sql"), {encoding: "utf-8"});
