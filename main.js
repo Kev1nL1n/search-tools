@@ -1,6 +1,7 @@
 //数据库封装对象
 const StringUtils = require("./js/utils/string-utils");
 const express = require('express');
+const os = require('os');
 //获取机器码
 const {machineIdSync} = require('node-machine-id');
 const axios = require('axios');
@@ -143,7 +144,7 @@ function createWindow(url) {
     //win.loadFile('index.html');
     win.loadURL(url);
     //打开开发者工具
-    //win.webContents.openDevTools({mode: 'bottom'});
+    win.webContents.openDevTools({mode: 'bottom'});
     // 获取当前窗口的 webContents
     const webContents = win.webContents;
     // 获取对应的 session
@@ -200,6 +201,30 @@ async function checkAuth() {
         result = false;
     }
     return result;
+}
+
+function openBrowser(url) {
+    let openCmd;
+
+    switch (os.platform()) {
+        case 'darwin': // macOS
+            openCmd = `open "${url}"`;
+            break;
+        case 'win32': // Windows
+            openCmd = `start "" "${url}"`;
+            break;
+        default: // 假设其他平台（如Linux）使用xdg-open
+            openCmd = `xdg-open "${url}"`;
+    }
+
+    exec(openCmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`执行错误: ${error}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+        console.error(`stderr: ${stderr}`);
+    });
 }
 
 //关闭网站隔离
@@ -286,6 +311,8 @@ function updateConfig(data) {
  * 初始化IPC通信处理器
  */
 function initIpcHandle() {
+    regHandleByType("openBrowser", openBrowser);
+
     regHandleByType("getReadme", async () => {
         return fs.readFileSync(path.join(process.cwd(), "README",), {encoding: "utf-8"});
     })
