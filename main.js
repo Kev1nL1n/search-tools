@@ -26,6 +26,7 @@ global.sqlite = new Sqlite(dbPath);
 //工作线程
 const {Worker} = require('worker_threads');
 const XLSX = require('xlsx');
+const machineId = machineIdSync(true);
 //数据库实体封装
 const resultService = require("./js/database/service/result");
 const linkService = require("./js/database/service/link");
@@ -165,44 +166,19 @@ function createWindow(url) {
     });
 }
 
-async function checkAuth() {
-    let id = machineIdSync(true);
-    let result = true;
+async function getUserFromUrl() {
     try {
         let response = await axios.get(allowCodes);
         if (response.status === 200) {
             const list = response.data;
-            let item = list.find(item => item.code === id || item.codes.includes(id));
-            if (!item) {
-                copyPaste.copy(id);
-                await dialog.showMessageBox({
-                    type: 'info',
-                    title: '未授权提示',
-                    message: `ID已复制，请注册当前ID后重试：${id}`,
-                    buttons: ['确定']
-                });
-                result = false;
+            let item = list.find(item => item.code === machineId || item.codes.includes(machineId));
+            if (item) {
+                user = item;
             }
-            user = item;
-        } else {
-            await dialog.showMessageBox({
-                type: 'info',
-                title: '未授权提示',
-                message: '当前授权服务不可用，请稍候重试',
-                buttons: ['确定']
-            });
-            result = false;
         }
     } catch (e) {
-        await dialog.showMessageBox({
-            type: 'info',
-            title: '未授权提示',
-            message: '当前授权服务不可用，请稍候重试',
-            buttons: ['确定']
-        });
-        result = false;
+
     }
-    return result;
 }
 
 function openBrowser(url) {
@@ -234,11 +210,7 @@ app.commandLine.appendSwitch("disable-site-isolation-trials");
 
 app.whenReady().then(async () => {
     createServer();
-    let authPass = await checkAuth();
-    if (!authPass) {
-        await app.quit();
-        return;
-    }
+    await getUserFromUrl();
     await global.sqlite.open();
     if (isNeedInitDB) {
         const initSql = fs.readFileSync(path.join(process.cwd(), "init.sql"), {encoding: "utf-8"});
@@ -317,6 +289,20 @@ function initIpcHandle() {
         return user;
     });
 
+    regHandleByType("getReadme", async () => {
+        return fs.readFileSync(path.join(process.cwd(), "README",), {encoding: "utf-8"});
+    })
+
+    regHandleByType("saveConfig", updateConfig)
+
+    regHandleByType("getConfig", async () => {
+        return config;
+    })
+
+    regHandleByType("getMachineId", async () => {
+        return machineId;
+    })
+
     //没有用户则其他功能不再添加
     if (!user) {
         return;
@@ -324,20 +310,10 @@ function initIpcHandle() {
 
     regHandleByType("openBrowser", openBrowser);
 
-    regHandleByType("getReadme", async () => {
-        return fs.readFileSync(path.join(process.cwd(), "README",), {encoding: "utf-8"});
-    })
-
-    regHandleByType("getConfig", async () => {
-        return config;
-    })
-
     regHandleByType("restartTask", async () => {
         // 发送消息给工作线程
         worker.postMessage(config);
     })
-
-    regHandleByType("saveConfig", updateConfig)
 
     regHandleByType("getFilePath", async () => {
         return getFileSavePath();
