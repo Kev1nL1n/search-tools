@@ -5,13 +5,14 @@
     "main": "main.js",
     "scripts": {
         "start": "chcp 65001 && electron .",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "package": "npx electron-packager . tools --platform=win32 --out=dist"
     },
     "author": "Kevin",
     "license": "MIT",
     "devDependencies": {
-        "electron": "^29.1.5",
-        "electron-devtools-installer": "^3.2.0"
+        "electron": "^21.4.4",
+        "electron-packager": "v15.5.1"
     },
     "dependencies": {
         "axios": "^1.6.8",
@@ -20,7 +21,7 @@
         "express": "^4.19.2",
         "node-machine-id": "^1.1.12",
         "publicsuffixlist": "^0.3.0",
-        "puppeteer": "^19.11.1",
+        "puppeteer": "^13.0.1",
         "sqlite3": "^5.1.7",
         "xlsx": "^0.18.5"
     }

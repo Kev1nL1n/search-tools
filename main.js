@@ -144,7 +144,7 @@ function createWindow(url) {
     //win.loadFile('index.html');
     win.loadURL(url);
     //打开开发者工具
-    win.webContents.openDevTools({mode: 'bottom'});
+    //win.webContents.openDevTools({mode: 'bottom'});
     // 获取当前窗口的 webContents
     const webContents = win.webContents;
     // 获取对应的 session

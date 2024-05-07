@@ -1,0 +1,32 @@
+.ivu-btn {
+    outline: 0;
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    white-space: nowrap;
+    line-height: 1.5;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 32px;
+    padding: 0 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: color .2s linear, background-color .2s linear, border .2s linear, box-shadow .2s linear;
+    color: #515a6e;
+    background-color: #fff;
+    border: 1px solid #dcdee2;
+}
+
+.ivu-btn-primary {
+    color: #fff !important;
+    background-color: #2d8cf0 !important;
+    border-color: #2d8cf0 !important;
+}
