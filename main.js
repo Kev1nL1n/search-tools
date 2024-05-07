@@ -3,13 +3,13 @@ const StringUtils = require("./js/utils/string-utils");
 const express = require('express');
 const os = require('os');
 //获取机器码
-const { machineIdSync } = require('node-machine-id');
+const {machineIdSync} = require('node-machine-id');
 const axios = require('axios');
 const Sqlite = require('./js/database/sqlite');
 //IPC处理器封装对象
-const { getHandleByType, regHandleByType } = require('./js/ipc/ipc-handler');
+const {getHandleByType, regHandleByType} = require('./js/ipc/ipc-handler');
 //electron
-const { app, ipcMain, BrowserWindow, dialog } = require('electron');
+const {app, ipcMain, BrowserWindow, dialog} = require('electron');
 //path
 const path = require('path');
 const fs = require('fs');
@@ -24,7 +24,7 @@ const isNeedInitDB = !fs.existsSync(dbPath)
 //sqlite数据库实例
 global.sqlite = new Sqlite(dbPath);
 //工作线程
-const { Worker } = require('worker_threads');
+const {Worker} = require('worker_threads');
 const XLSX = require('xlsx');
 //数据库实体封装
 const resultService = require("./js/database/service/result");
@@ -32,26 +32,26 @@ const linkService = require("./js/database/service/link");
 const linkDataService = require("./js/database/service/link-data");
 const dataType = require("./js/constants/link-data-type");
 //状态常量
-const { SKIP } = require('./js/constants/link-status');
+const {SKIP} = require('./js/constants/link-status');
 //创建工作线程
 const worker = new Worker(path.join(__dirname, './js/worker.js'));
 const copyPaste = require('copy-paste');
-const { exec } = require('child_process');
+const {exec} = require('child_process');
 let server = null;
 let user = null;
 //配置文件
-let config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "config.json"), { encoding: "utf-8" }));
+let config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "config.json"), {encoding: "utf-8"}));
 let isUpdateConfig = false;
 //是否有加密密钥，没有则生成一个
 if (StringUtils.isBlank(config.secretKey)) {
-    const { randomBytes } = require("./js/utils/aes-utils");
+    const {randomBytes} = require("./js/utils/aes-utils");
     let secretKey = randomBytes(32);
     config.secretKey = secretKey.toJSON().data.join(",");
     isUpdateConfig = true;
 }
 //是否有初始化向量，没有则生成一个
 if (StringUtils.isBlank(config.iv)) {
-    const { randomBytes } = require("./js/utils/aes-utils");
+    const {randomBytes} = require("./js/utils/aes-utils");
     let iv = randomBytes(16);
     config.iv = iv.toJSON().data.join(",");
     isUpdateConfig = true;
@@ -61,7 +61,7 @@ if (isUpdateConfig) {
     updateConfig(config);
 }
 
-const { host, allowCodes } = config;
+const {host, allowCodes} = config;
 
 async function exportExcel2File(list = [], filePath) {
     // 创建一个新的工作簿，并将工作表添加到工作簿中
@@ -76,13 +76,13 @@ async function exportExcel2File(list = [], filePath) {
                 link: item.link
             }
         }));
-        ws['A1'] = { t: 's', v: '编号' };
-        ws['B1'] = { t: 's', v: '数据' };
-        ws['C1'] = { t: 's', v: '来源' };
+        ws['A1'] = {t: 's', v: '编号'};
+        ws['B1'] = {t: 's', v: '数据'};
+        ws['C1'] = {t: 's', v: '来源'};
         XLSX.utils.book_append_sheet(wb, ws, key);
     }
     // 将工作簿写入文件
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+    const excelBuffer = XLSX.write(wb, {bookType: 'xlsx', type: 'buffer'});
 
     return new Promise((resolve, reject) => {
         // 将缓冲区数据写入文件
@@ -101,8 +101,8 @@ function getFileSavePath() {
         title: '选择保存位置',
         defaultPath: `数据导出${new Date().getTime()}.xlsx`, // 默认文件名
         filters: [
-            { name: 'Excel Files', extensions: ['xlsx'] }, // 可选的文件类型
-            { name: 'All Files', extensions: ['*'] }
+            {name: 'Excel Files', extensions: ['xlsx']}, // 可选的文件类型
+            {name: 'All Files', extensions: ['*']}
         ]
     });
 }
@@ -161,7 +161,7 @@ function createWindow(url) {
             }
         })
         // 必须调用 callback 来继续请求
-        callback({ responseHeaders: details.responseHeaders });
+        callback({responseHeaders: details.responseHeaders});
     });
 }
 
@@ -241,7 +241,7 @@ app.whenReady().then(async () => {
     }
     await global.sqlite.open();
     if (isNeedInitDB) {
-        const initSql = fs.readFileSync(path.join(process.cwd(), "init.sql"), { encoding: "utf-8" });
+        const initSql = fs.readFileSync(path.join(process.cwd(), "init.sql"), {encoding: "utf-8"});
         // 将文件内容分割成多个SQL语句
         const sqlStatements = initSql.split(';');
         // 逐个执行SQL语句
@@ -287,7 +287,7 @@ app.on('window-all-closed', async () => {
  * @param data {Object}
  */
 async function handleIpcInvoke(event, data) {
-    const { type, content } = data;
+    const {type, content} = data;
     try {
         let handleFn = getHandleByType(type);
         if (handleFn) {
@@ -306,21 +306,26 @@ async function handleIpcInvoke(event, data) {
 
 function updateConfig(data) {
     config = data;
-    return fs.writeFileSync(path.join(process.cwd(), "config.json"), JSON.stringify(data), { encoding: "utf-8" });
+    return fs.writeFileSync(path.join(process.cwd(), "config.json"), JSON.stringify(data), {encoding: "utf-8"});
 }
 
 /**
  * 初始化IPC通信处理器
  */
 function initIpcHandle() {
-    regHandleByType("openBrowser", () => {
+    regHandleByType("getUser", () => {
         return user;
     });
+
+    //没有用户则其他功能不再添加
+    if (!user) {
+        return;
+    }
 
     regHandleByType("openBrowser", openBrowser);
 
     regHandleByType("getReadme", async () => {
-        return fs.readFileSync(path.join(process.cwd(), "README",), { encoding: "utf-8" });
+        return fs.readFileSync(path.join(process.cwd(), "README",), {encoding: "utf-8"});
     })
 
     regHandleByType("getConfig", async () => {
@@ -343,8 +348,8 @@ function initIpcHandle() {
     })
 
     regHandleByType("openContent", async (data) => {
-        const { type, content } = data;
-        const { PHONE, TEL, EMAIL, FILE } = dataType;
+        const {type, content} = data;
+        const {PHONE, TEL, EMAIL, FILE} = dataType;
         return new Promise(resolve => {
             switch (type) {
                 case PHONE:

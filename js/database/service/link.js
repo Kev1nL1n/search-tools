@@ -32,7 +32,7 @@ async function count({params}) {
  * @return {Promise}
  */
 async function countSame(link) {
-    return await global.sqlite.one("select count(1) as count from t_link where result_id = ? and content = ?", Object.values(link));
+    return await global.sqlite.one("select count(1) as count from t_link where content = ?", [link.content]);
 }
 
 /**
