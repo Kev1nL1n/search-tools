@@ -1,4 +1,4 @@
-const {ERROR} = require('../../constants/link-status');
+const {ERROR, SEARCHING} = require('../../constants/link-status');
 const sqlUtils = require("../../utils/sql-utils");
 
 /**
@@ -44,14 +44,6 @@ async function getWait(resultId) {
 }
 
 /**
- * 是否存在
- * @return {Promise}
- */
-async function isExist(id) {
-    return await count({params: {id}}) > 0;
-}
-
-/**
  * 更新一条记录的状态
  * @param id {Number}
  * @param status {Number}
@@ -80,6 +72,18 @@ async function removeByResultId(resultId) {
     await global.sqlite.run("delete from t_link where result_id = ?", [resultId]);
 }
 
+/**
+ * 是否为正常状态
+ * @return {Promise}
+ */
+async function isNormal(linkId) {
+    let link = await global.sqlite.one(`select * from t_link where id = ?`, [linkId]);
+    if (!link) {
+        return false;
+    }
+    return link.status === SEARCHING;
+}
+
 module.exports = {
     insert,
     page,
@@ -89,5 +93,5 @@ module.exports = {
     updateStatusByResultId,
     removeByResultId,
     countSame,
-    isExist
+    isNormal
 }

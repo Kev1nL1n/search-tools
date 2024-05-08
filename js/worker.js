@@ -20,11 +20,11 @@ let browser = null;
 let worker = null;
 
 //初始化一级主机解析库
-const PublicSuffixList = require('publicsuffixlist');
+//const PublicSuffixList = require('publicsuffixlist');
 //创建顶级域名解析实例
-const psl = new PublicSuffixList({});
+//const psl = new PublicSuffixList({});
 
-psl.initializeSync();
+//psl.initializeSync();
 
 parentPort.on('message', async (config) => {
     if (!worker) {
@@ -251,8 +251,8 @@ function createLinkWithResult(link, resultId) {
  */
 function parseDomain(urlString) {
     const parsedUrl = new URL(urlString);
-    const hostname = parsedUrl.hostname;
-    return psl.domain(hostname);
+    //return psl.domain(hostname);
+    return parsedUrl.hostname;
 }
 
 /**
@@ -318,21 +318,20 @@ class ResultWorker {
                     //开始事务
                     await global.sqlite.run('BEGIN TRANSACTION;');
                     //已删除则不再添加
-                    if (!await linkService.isExist(link.id)) {
-                        return;
-                    }
-                    for (const cLink of linkData.linkList) {
-                        let result = await linkService.countSame(cLink);
-                        if (result.count > 0) {
-                            continue;
+                    if (await linkService.isNormal(link.id)) {
+                        for (const cLink of linkData.linkList) {
+                            let result = await linkService.countSame(cLink);
+                            if (result.count > 0) {
+                                continue;
+                            }
+                            await linkService.insert(cLink);
                         }
-                        await linkService.insert(cLink);
+                        for (const lData of linkData.dataList) {
+                            await linkDataService.insert(lData, this.config);
+                        }
+                        //更新为已完成
+                        await linkService.updateStatus(link.id, DONE);
                     }
-                    for (const lData of linkData.dataList) {
-                        await linkDataService.insert(lData, this.config);
-                    }
-                    //更新为已完成
-                    await linkService.updateStatus(link.id, DONE);
                 } finally {
                     //提交事务
                     await global.sqlite.run('COMMIT;');
