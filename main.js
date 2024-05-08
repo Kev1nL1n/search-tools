@@ -42,23 +42,31 @@ let server = null;
 let user = null;
 //配置文件
 let config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "config.json"), {encoding: "utf-8"}));
-let isUpdateConfig = false;
+//是否需要更新配置文件
+let needUpdateConfig = false;
+//最低延迟
+const minDelayMS = 1000;
+//如果延迟小于最低
+if (!config.search.interval || config.search.interval < minDelayMS) {
+    config.search.interval = minDelayMS;
+    needUpdateConfig = true;
+}
 //是否有加密密钥，没有则生成一个
 if (StringUtils.isBlank(config.secretKey)) {
     const {randomBytes} = require("./js/utils/aes-utils");
     let secretKey = randomBytes(32);
     config.secretKey = secretKey.toJSON().data.join(",");
-    isUpdateConfig = true;
+    needUpdateConfig = true;
 }
 //是否有初始化向量，没有则生成一个
 if (StringUtils.isBlank(config.iv)) {
     const {randomBytes} = require("./js/utils/aes-utils");
     let iv = randomBytes(16);
     config.iv = iv.toJSON().data.join(",");
-    isUpdateConfig = true;
+    needUpdateConfig = true;
 }
 //是否需要更新密钥
-if (isUpdateConfig) {
+if (needUpdateConfig) {
     updateConfig(config);
 }
 
@@ -175,9 +183,13 @@ async function getUserFromUrl() {
             if (item) {
                 user = item;
             }
+        } else {
+            throw new Error();
         }
     } catch (e) {
-
+        //如果访问失败则设置为默认
+        config.allowCodes = config.host + "machine-code.json";
+        updateConfig(config);
     }
 }
 
@@ -319,7 +331,7 @@ function initIpcHandle() {
         return getFileSavePath();
     })
 
-    regHandleByType("openWindow", async (data) => {
+    regHandleByType("openInnerWindow", async (data) => {
         createWindow(host + "browser/index?url=" + encodeURIComponent(data.url));
     })
 

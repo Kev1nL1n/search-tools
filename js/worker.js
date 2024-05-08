@@ -23,6 +23,7 @@ let worker = null;
 const PublicSuffixList = require('publicsuffixlist');
 //创建顶级域名解析实例
 const psl = new PublicSuffixList({});
+
 psl.initializeSync();
 
 parentPort.on('message', async (config) => {
@@ -34,10 +35,12 @@ parentPort.on('message', async (config) => {
     parentPort.postMessage({});
 });
 
+/**
+ * 延迟指定时间
+ * @param ms 延迟毫秒数 最低1000
+ * @return {Promise<unknown>}
+ */
 async function delay(ms) {
-    if (ms < 500) {
-        ms = 500
-    }
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -86,7 +89,7 @@ async function handleFile({id, result_id, content: url}) {
     const response = await axios.get(url, {
         responseType: 'stream'
     });
-    let fileName = path.basename(url1.pathname);
+    let fileName = path.basename(decodeURIComponent(url1.pathname));
     let fileDir = path.join(process.cwd(), `downloads/${hostname}`);
     // 创建目录
     FileUtils.mkdir(fileDir);
